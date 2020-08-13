@@ -15,7 +15,7 @@ public class AnnotationGrabberTest {
 
   @Test
   public void generateMappings() throws Exception {
-    JsonObject mappings = AnnotationGrabber.generateMappings();
+    JsonObject mappings = AnnotationGrabber.generateMappings(true, "org.folio.rest.jaxrs.resource");
     log.debug(mappings.encodePrettily());
     JsonObject unittests = mappings.getJsonObject("^unittests");
     assertThat(unittests.getString("class"), is("org.folio.rest.jaxrs.resource.TestResource"));

@@ -52,32 +52,21 @@ public class AnnotationGrabber {
 
   private static final Logger log = LoggerFactory.getLogger(AnnotationGrabber.class);
 
-  private static boolean generateClient = false;
-
   // ^http.*?//.*?/apis/patrons/.*?/fines/.*
   // ^http.*?\/\/.*?\/apis\/patrons\/?(.+?)*
   // ^http.*?\/\/.*?\/apis\/([^\/]+)\/([^\/]+)(\?.*)
 
-  public static JsonObject generateMappings() throws Exception {
-
-    /* this class is one of the drivers for the client generation
-     * check if the plugin set the system property in the pom and only if
-     * so generate */
-    String clientGen = System.getProperty("client.generate");
-
-    if(clientGen != null){
-      generateClient = true;
-    }
+  public static JsonObject generateMappings(boolean generateClient, String interfacePackage) throws Exception {
     JsonObject globalClassMapping = new JsonObject();
 
     // get classes in generated package
-    Collection<Class<?>> interfaces = findTopLevelInterfacesInPackage(RTFConsts.INTERFACE_PACKAGE);
+    Collection<Class<?>> interfaces = findTopLevelInterfacesInPackage(interfacePackage);
 
     // loop over all the classes from the package
     interfaces.forEach(intface -> {
       try {
 
-        ClientGenerator cGen = new ClientGenerator();
+        ClientGenerator cGen = new ClientGenerator(interfacePackage);
 
         // ----------------- class level annotations -----------------------//
         // -----------------------------------------------------------------//

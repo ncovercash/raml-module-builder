@@ -98,6 +98,31 @@ public class GenerateRunnerTest {
     assertTest();
   }
 
+  private String testJava2(String pkg, String clazz) throws IOException {
+
+    String fname = System.getProperty("project.basedir", userDir) + "/target/generated-sources/raml-jaxrs/" +
+        pkg.replace('.', '/') + "/" + clazz + ".java";
+    return IoUtil.toStringUtf8(fname);
+  }
+
+  @Test
+  public void canRunMainCustomDirs() throws Exception {
+    System.setProperty("model_package", "org.folio.rest.jaxrs2.model");
+    System.setProperty("interface_package", "org.folio.rest.jaxrs2.resource");
+    GenerateRunner.main(null);
+
+    assertThat(testJava2("org.folio.rest.jaxrs2.model", "Test"), allOf(
+        containsString("String getName("),
+        containsString("setName(String"),
+        containsString("withName(String")));
+
+    assertThat(testJava2("org.folio.rest.jaxrs2.resource", "Test"), allOf(
+        containsString("public interface Test")));
+
+    System.clearProperty("model_package");
+    System.clearProperty("interface_package");
+  }
+
   private void assertJobMsgs() throws IOException {
     assertThat(jobJava(), allOf(
         containsString("String getModule("),
@@ -124,7 +149,7 @@ public class GenerateRunnerTest {
 
   @Test(expected=IOException.class)
   public void invalidInputDirectory() throws Exception {
-    new GenerateRunner(baseDir).generate(resourcesDir + "/job.schema");
+    new GenerateRunner(baseDir, "org.folio.rest.jaxrs.model", "org.folio.rest.jaxrs.resource").generate(resourcesDir + "/job.schema");
   }
 
   @Test

@@ -2,7 +2,7 @@ package org.folio.rest.persist.interfaces;
 
 import java.util.List;
 
-import org.folio.rest.jaxrs.model.ResultInfo;
+import org.folio.rmb.jaxrs.model.ResultInfo;
 
 /**
  * @author shale

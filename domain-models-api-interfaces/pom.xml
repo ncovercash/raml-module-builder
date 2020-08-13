@@ -128,6 +128,14 @@
                   <key>jsonschema.customfield</key>
                   <value>{"fieldname": "test", "fieldvalue": true, "annotation": {"type":"javax.validation.constraints.Null"}}</value>
                 </systemProperty>
+                <systemProperty>
+                  <key>model_package</key>
+                  <value>org.folio.rmb.jaxrs.model</value>
+                </systemProperty>
+                <systemProperty>
+                  <key>interface_package</key>
+                  <value>org.folio.rmb.jaxrs.resource</value>
+                </systemProperty>
               </systemProperties>
             </configuration>
           </execution>

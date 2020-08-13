@@ -2,7 +2,7 @@ package org.folio.rest.persist;
 
 import io.vertx.core.Handler;
 import io.vertx.core.streams.ReadStream;
-import org.folio.rest.jaxrs.model.ResultInfo;
+import org.folio.rmb.jaxrs.model.ResultInfo;
 
 /**
  * The result of successful completion of PostgresCLient.streamGet

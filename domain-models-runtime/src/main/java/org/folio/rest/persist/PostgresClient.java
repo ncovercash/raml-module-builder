@@ -53,7 +53,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dbschema.util.SqlUtil;
-import org.folio.rest.jaxrs.model.ResultInfo;
+import org.folio.rmb.jaxrs.model.ResultInfo;
 import org.folio.rest.persist.Criteria.Criterion;
 import org.folio.rest.persist.Criteria.Limit;
 import org.folio.rest.persist.Criteria.Offset;
@@ -2521,7 +2521,7 @@ public class PostgresClient {
 
   static class ResultsHelper<T> {
     final List<T> list;
-    final Map<String, org.folio.rest.jaxrs.model.Facet> facets;
+    final Map<String, org.folio.rmb.jaxrs.model.Facet> facets;
     final RowSet<Row> resultSet;
     final Class<T> clazz;
     int total;
@@ -2644,9 +2644,9 @@ public class PostgresClient {
       try {
         // is this a facet entry - if so process it, otherwise will throw an exception
         // and continue trying to map to the pojos
-        o =  mapper.readValue(jo.toString(), org.folio.rest.jaxrs.model.Facet.class);
-        org.folio.rest.jaxrs.model.Facet of = (org.folio.rest.jaxrs.model.Facet) o;
-        org.folio.rest.jaxrs.model.Facet facet = resultsHelper.facets.get(of.getType());
+        o =  mapper.readValue(jo.toString(), org.folio.rmb.jaxrs.model.Facet.class);
+        org.folio.rmb.jaxrs.model.Facet of = (org.folio.rmb.jaxrs.model.Facet) o;
+        org.folio.rmb.jaxrs.model.Facet facet = resultsHelper.facets.get(of.getType());
         if (facet == null) {
           resultsHelper.facets.put(of.getType(), of);
         } else {

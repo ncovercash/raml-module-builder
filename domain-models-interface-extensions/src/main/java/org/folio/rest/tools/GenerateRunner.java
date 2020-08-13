@@ -28,6 +28,7 @@ import org.raml.jaxrs.generator.RamlScanner;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+
 /**
  * Read RAML files and generate .java files from them.
  *
@@ -67,13 +68,14 @@ public class GenerateRunner {
    *
    * @param outputDirectory  where to write the files to
    */
-  public GenerateRunner(String outputDirectory) {
+  public GenerateRunner(String outputDirectory, String modelPackage, String interfacePackage) {
     this.outputDirectory = outputDirectory;
-    outputDirectoryWithPackage = outputDirectory + RTFConsts.INTERFACE_PACKAGE.replace('.', '/');
+    log.info("GenerateRunner outputDirectory=" + outputDirectory + " modelPackage=" + modelPackage + " interfacePackage=" + interfacePackage);
+    outputDirectoryWithPackage = outputDirectory + interfacePackage.replace('.', '/');
     configuration = new Configuration();
-    configuration.setModelPackage(MODEL_PACKAGE_DEFAULT);
-    configuration.setResourcePackage(RTFConsts.INTERFACE_PACKAGE);
-    configuration.setSupportPackage(RTFConsts.INTERFACE_PACKAGE +".support");
+    configuration.setModelPackage(modelPackage);
+    configuration.setResourcePackage(interfacePackage);
+    configuration.setSupportPackage(interfacePackage +".support");
     configuration.setOutputDirectory(new File(this.outputDirectory));
     configuration.setJsonMapper(AnnotationStyle.valueOf(("jackson2").toUpperCase()));
     configuration.setTypeConfiguration(new String[]{"core.one"});
@@ -96,7 +98,7 @@ public class GenerateRunner {
    * <p>
    * The output directories are relative to the directory
    * specified by the system property <code>project.basedir</code>, see
-   * {@link #GenerateRunner(String)}. Default is the current directory.
+   * {@link #GenerateRunner(String, String, String)}. Default is the current directory.
    * <p>
    * Any existing content in the output directories is removed.
    *
@@ -111,7 +113,9 @@ public class GenerateRunner {
     }
     String outputDirectory = root + ClientGenerator.PATH_TO_GENERATE_TO;
 
-    GenerateRunner generateRunner = new GenerateRunner(outputDirectory);
+    String modelPackage = System.getProperty("model_package", MODEL_PACKAGE_DEFAULT);
+    String interfacePackage = System.getProperty("interface_package", RTFConsts.INTERFACE_PACKAGE);
+    GenerateRunner generateRunner = new GenerateRunner(outputDirectory, modelPackage, interfacePackage);
     //generateRunner.cleanDirectories();
     CustomTypeAnnotator.setCustomFields(System.getProperties().getProperty("jsonschema.customfield"));
 
@@ -134,21 +138,6 @@ public class GenerateRunner {
 
     createLookupList(output, RAML_LIST, Collections.singletonList(".raml"));
     createLookupList(output, JSON_SCHEMA_LIST, Arrays.asList(".json", ".schema"), Arrays.asList(schemaPaths));
-  }
-
-  /**
-   * Remove all files from the PACKAGE_DEFAULT and RTFConsts.CLIENT_GEN_PACKAGE
-   * directories.
-   * @throws IOException on file delete error
-   */
-  public void cleanDirectories() throws IOException {
-    ClientGenerator.makeCleanDir(outputDirectoryWithPackage);
-
-    //if we are generating interfaces, we need to remove any generated client code
-    //as if the interfaces have changed in a way (pojos removed, etc...) that causes
-    //the client generated code to cause compilation errors
-    String clientDir = outputDirectory + RTFConsts.CLIENT_GEN_PACKAGE.replace('.', '/');
-    ClientGenerator.makeCleanDir(clientDir);
   }
 
   /**

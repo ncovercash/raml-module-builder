@@ -213,6 +213,14 @@
                   <key>json.type</key>
                   <value>postgres</value>
                 </systemProperty>
+                <systemProperty>
+                  <key>model_package</key>
+                  <value>org.folio.rmb.jaxrs.model</value>
+                </systemProperty>
+                <systemProperty>
+                  <key>interface_package</key>
+                  <value>org.folio.rmb.jaxrs.resource</value>
+                </systemProperty>
               </systemProperties>
             </configuration>
           </execution>
