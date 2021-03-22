@@ -631,7 +631,7 @@ public class PostgresClientTest {
   @Test
   public void splitSqlStatementsDollarQuoting() {
     assertThat(PostgresClient.splitSqlStatements("foo\nbar $$\rbaz\r\n$$ end"),
-        is(arrayContaining("foo", "bar $$\rbaz\r\n$$ end", "")));
+        is(arrayContaining("foo", "bar $$\rbaz\r\n$$ end")));
   }
 
   @Test
@@ -639,11 +639,17 @@ public class PostgresClientTest {
     assertThat(PostgresClient.splitSqlStatements(
         "DO $xyz$ SELECT\n$xyzabc$Rock 'n' Roll$xyzabc$;\n$xyz$;\r\nSELECT $$12$xyz$34$xyz$56$$;\nSELECT $$12$$;"),
         is(arrayContaining(
-            "",
             "DO $xyz$ SELECT\n$xyzabc$Rock 'n' Roll$xyzabc$;\n$xyz$;",
             "SELECT $$12$xyz$34$xyz$56$$;",
-            "SELECT $$12$$;",
-            "")));
+            "SELECT $$12$$;"
+            )));
+  }
+
+  @Test
+  public void splitSqlStatementsDollarLead() {
+    assertThat(PostgresClient.splitSqlStatements(
+        "\r\n$xyz$a$xyz$;\r\n"),
+        is(arrayContaining("$xyz$a$xyz$;")));
   }
 
   @Test

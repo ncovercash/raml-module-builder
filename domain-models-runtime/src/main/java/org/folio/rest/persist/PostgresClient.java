@@ -3847,7 +3847,7 @@ public class PostgresClient {
    * <a href="https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-DOLLAR-QUOTING">
    * Dollar-quoted string constants</a> with $$ or $[0-9a-zA-Z_]+$ are preserved.
    */
-  static String [] splitSqlStatements(String sqlFile) {
+  static String [] splitSqlStatements2(String sqlFile) {
     List<String> lines = new ArrayList<>();
     Matcher matcher = POSTGRES_DOLLAR_QUOTING.matcher(sqlFile);
     int searchStart = 0;
@@ -3858,6 +3858,53 @@ public class PostgresClient {
     }
     lines.addAll(lines(sqlFile.substring(searchStart)));
     return lines.toArray(new String [0]);
+  }
+
+  static String [] splitSqlStatements(String sqlFile) {
+    List<String> lines = new ArrayList<>();
+    int lineStart = -1;
+    String dollarPattern = null;
+    int i = 0;
+    while (i < sqlFile.length()) {
+      if (dollarPattern == null) {
+        if (sqlFile.charAt(i) == '\n' || sqlFile.charAt(i) == '\r') {
+          if (lineStart != -1) {
+            lines.add(sqlFile.substring(lineStart, i));
+          }
+          while (i < sqlFile.length() && (sqlFile.charAt(i) == '\n' || sqlFile.charAt(i) == '\r')) {
+            i++;
+          }
+          lineStart = -1;
+        } else if (sqlFile.charAt(i) == '$') {
+          if (lineStart == -1) {
+            lineStart = i;
+          }
+          int patternIndex = i;
+          i++;
+          while (i < sqlFile.length() && Character.isAlphabetic(sqlFile.charAt(i))) {
+            i++;
+          }
+          if (i < sqlFile.length() && sqlFile.charAt(i) == '$') {
+            i++;
+            dollarPattern = sqlFile.substring(patternIndex, i);
+          }
+        } else {
+          if (lineStart == -1) {
+            lineStart = i;
+          }
+          i++;
+        }
+      } else if (sqlFile.startsWith(dollarPattern, i)) {
+        i += dollarPattern.length();
+        dollarPattern = null;
+      } else {
+        i++;
+      }
+    }
+    if (lineStart != -1) {
+      lines.add(sqlFile.substring(lineStart));
+    }
+    return lines.toArray(new String[0]);
   }
 
   @SuppressWarnings("checkstyle:EmptyBlock")
