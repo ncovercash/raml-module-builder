@@ -210,46 +210,41 @@ various tools.
 Notice that no web server was configured or even referenced in the implementing
 module - this is all handled by the runtime framework.
 
-Some sample projects:
+A sample project: https://github.com/folio-org/mod-configuration
 
-- https://github.com/folio-org/mod-configuration
-- https://github.com/folio-org/mod-notes
-
-and other [modules](https://dev.folio.org/source-code/#server-side) (not all do use the RMB).
+And other [modules](https://dev.folio.org/source-code/#server-side) (not all do use the RMB).
 
 
 ## Get started with a sample working module
 
-The [mod-notify](https://github.com/folio-org/mod-notify)
-is a full example which uses the RMB. Clone it, and then investigate:
+The [mod-circulation-storage CancellationReasonsAPI.java](https://github.com/folio-org/mod-circulation-storage/blob/master/src/main/java/org/folio/rest/impl/CancellationReasonsAPI.java) is a full example which uses the RMB.
 
-```
-$ git clone --recursive https://github.com/folio-org/mod-notify.git
-$ cd mod-notify
-$ mvn clean install
-```
+- Find the cancellation-reason.raml, cancellation-reasons.json and cancellation-reason.json files in the [ramls](https://github.com/folio-org/mod-circulation-storage/tree/master/ramls) directory.These are also displayed as local [API documentation](#documentation-of-the-apis).
 
-- Its RAMLs and JSON schemas can be found in the `ramls` directory.
-These are also displayed as local [API documentation](#documentation-of-the-apis).
+- Open the pom.xml file - notice the jars in the `dependencies` section as well as the `plugins` section. The `domain-models-maven-plugin` reads the `ramls` directory and generated the interfaces and POJOs. It generates source files into the `target/generated-sources/raml-jaxrs` directory. The generated interfaces are implemented within the project in the `org.folio.rest.impl` package.
 
-- Open the pom.xml file - notice the jars in the `dependencies` section as well as the `plugins` section. The `ramls` directory is declared in the pom.xml and passed to the interface and POJO generating tool via a maven exec plugin. The tool generates source files into the `target/generated-sources/raml-jaxrs` directory. The generated interfaces are implemented within the project in the `org.folio.rest.impl` package.
-
-- Investigate the `src/main/java/org/folio/rest/impl/NotificationsResourceImpl.java` class. Notice that there is a function representing each endpoint that is declared in the RAML file. The appropriate parameters (as described in the RAML) are passed as parameters to these functions so that no parameter parsing is needed by the developer. Notice that the class contains all the code for the entire module. All handling of URLs, validations, objects, etc. is all either in the RMB jars, or generated for this module by the RMB at build time.
+- Investigate the `src/main/java/org/folio/rest/impl/CancellationReasonsAPI.java` class. Notice that there is a function representing each endpoint that is declared in the RAML file. The appropriate parameters (as described in the RAML) are passed as parameters to these functions so that no parameter parsing is needed by the developer. Notice that the class contains all the code for the entire RAML. All handling of URLs, validations, objects, etc. is all either in the RMB jars, or generated for this module by the RMB at build time.
 
 - **IMPORTANT NOTE:** Every interface implementation - by any module -
   must reside in package `org.folio.rest.impl`. This is the package that is
   scanned at runtime by the runtime framework, to find the needed runtime
   implementations of the generated interfaces.
 
-Now run the module in standalone mode:
+Now build and run the module in standalone mode:
 
 ```
-$ java -jar target/mod-notify-fat.jar
+$ mvn clean install
+$ java -jar target/mod-circulation-storage-fat.jar
 ```
 
 Now send some requests using '[curl](https://curl.haxx.se)' or '[httpie](https://httpie.org)'
 
-At this stage there is not much that can be queried, so stop that quick demonstration now.
+```
+$ curl -w"\n" -D - -H "Content-type: application/json" -H "X-Okapi-Tenant: diku" -d '{}' http://localhost:8081/_/tenant
+$ curl -w"\n" -D - -H "Content-type: application/json" -H "X-Okapi-Tenant: diku" -d '{"name": "left uni"}' http://localhost:8081/cancellation-reason-storage/cancellation-reasons
+$ curl -w"\n" -D - -H "Content-type: application/json" -H "X-Okapi-Tenant: diku" http://localhost:8081/cancellation-reason-storage/cancellation-reasons
+```
+
 After explaining general command-line options, etc.
 we will get your local development server running and populated with test data.
 
@@ -338,8 +333,9 @@ Create the new project using the [normal layout](https://dev.folio.org/guides/co
 Add the `/ramls` directory, the area for the RAML, schemas, and examples files.
 For a maven subproject the directory may be at the parent project only.
 
-To get a quick start, copy the "ramls" directory and POM file from
-[mod-notify](https://github.com/folio-org/mod-notify).
+To get a quick start, copy the cancellation-reason.raml, cancellation-reasons.json and cancellation-reason.json
+files from the "ramls" directory and POM file from
+[mod-circulation-storage](https://github.com/folio-org/mod-circulation-storage).
 (At [Step 6](#step-6-design-the-raml-files) below, these will be replaced to suit your project's needs.)
 
 Adjust the POM file to match your project, e.g. artifactID, version, etc.
@@ -365,12 +361,12 @@ Adjust the POM file to match your project, e.g. artifactID, version, etc.
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
-      <version>32.2.0</version>
+      <version>33.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>postgres-testing</artifactId>
-      <version>32.2.0</version>
+      <version>33.0.3</version>
       <scope>test</scope>
     </dependency>
     ...
@@ -378,13 +374,11 @@ Adjust the POM file to match your project, e.g. artifactID, version, etc.
   </dependencies>
 ```
 
-(postgres-testing is available in version 32.2.0 and later)
-
 ### Step 3: Add the plugins to your pom.xml
 
 Four plugins need to be declared in the POM file:
 
-- The `exec-maven-plugin` which will generate the POJOs and interfaces based on
+- The `domain-models-maven-plugin` which will generate the POJOs and interfaces based on
   the RAML files.
 
 - The `aspectj-maven-plugin` which will pre-compile your code with validation aspects
@@ -449,8 +443,8 @@ scans this package for a class that implements the required interface.  The clas
 have any name.
 RMB then uses reflection to invoke the constructor and the method.
 
-See [mod-notify's org.folio.rest.impl package](https://github.com/folio-org/mod-notify/tree/master/src/main/java/org/folio/rest/impl)
-for example implementations.
+See [mod-circulation-storage's CancellationReasonsAPI.java](https://github.com/folio-org/mod-circulation-storage/blob/master/src/main/java/org/folio/rest/impl/CancellationReasonsAPI.java)
+for implementations using the default PgUtil implementations.
 
 ### Step 6: Design the RAML files
 
